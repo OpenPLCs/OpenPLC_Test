@@ -2,7 +2,7 @@
 
 This repo holds the contract and system layers (decision 78): what needs two or
 more repos to run. Each component repo has its own selfcheck for its own logic;
-the documents have theirs in OpenPLC_Docs (tools/check_docs.py). On-board cases
+the documents have theirs in OpenPLC_Instruction (tools/check_docs.py). On-board cases
 are not here -- they need a person or a board; --list names where they live.
 
     python tools/selfcheck.py              run everything

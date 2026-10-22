@@ -9,12 +9,11 @@ CDC or, with --upload ether, over Ethernet to the running app, and judged by the
 is on Serial, the board's USB port (decision 147); RS232_Echo's echo is on the
 RS232 terminals. The examples carry no machine lines; the criteria live in
 EXAMPLES below.
-Decided in $PROD/maps/core-examples-on-board/issues/EXB-01-how-does-the-script-judge-an-example.md
+Case: $PROD/docs/modules/M3-app-runtime.md, T3-06.
 
 Steps that need a person run first, so the operator can leave once they are
 done. What the board's output shows is waited for (HUMAN_S at most); what only
 a person can see is a single y/n key. No measured value is recorded.
-Decided in $PROD/maps/core-examples-on-board/issues/EXB-05-how-does-the-script-ask-for-a-human-step.md
 
 The CAN analyser is the CANable from can_send.py, found by USB id unless --can
 is given. With --skip-upload the examples reprint their one-shot output when

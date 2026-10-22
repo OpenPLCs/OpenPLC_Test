@@ -69,12 +69,12 @@ def read_text(path):
 # it at docs/ itself made $PROD/docs/path/to/x.md resolve to .../docs/docs/path/to/x.md, which P9
 # caught at once.
 def docs_repo():
-    """The OpenPLC_Docs checkout, or None if this machine has no clone of it."""
+    """The OpenPLC_Instruction checkout, or None if this machine has no clone of it."""
     configured = getattr(cfg, "DOCS_REPO", "")
     if configured and Path(configured).is_dir():
         return Path(configured)
     boot = Path(getattr(cfg, "BOOT_REPO", "") or ".")
-    cand = boot.parent / "OpenPLC_Docs"
+    cand = boot.parent / "OpenPLC_Instruction"
     return cand if cand.is_dir() else None
 
 
@@ -930,7 +930,7 @@ def probe(verbose=True):
     if verbose:
         if missing:
             Warn("  -> %d thing(s) missing on this machine: %s" % (len(missing), ", ".join(missing)))
-            Warn("     see OpenPLC_Docs docs/build/BUILD-AND-TEST.md for what each one is and where to get it")
+            Warn("     see OpenPLC_Instruction docs/build/BUILD-AND-TEST.md for what each one is and where to get it")
         else:
             Ok("  everything config points at exists")
     return missing

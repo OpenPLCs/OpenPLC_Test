@@ -2,7 +2,7 @@
 
 Answers ARP and DHCP (Renode has no DHCP server), then sends IAPTool's
 discovery datagram once a second and records the replies. Used by T3-11's
-Ethernet_IP; how it was worked out: $PROD/maps/sim-coverage/SIM-02-findings.md.
+Ethernet_IP.
 """
 
 import socket

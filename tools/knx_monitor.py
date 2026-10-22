@@ -3,8 +3,7 @@
     python tools/knx_monitor.py [--gateway IP] [--seconds N] [--send "w 31/7/255 1"]
 
 Without --gateway, the first gateway that answers a KNXnet/IP search is used.
-Watches the bus from the PC side, independent of the board (KEX-09 in
-$PROD/maps/knx-examples/issues/).
+Watches the bus from the PC side, independent of the board.
 
 Commands (same as the KNX_BusMonitor sketch), then Enter:
     w 1/0/1 1        GroupValue.Write of a 0..63 value

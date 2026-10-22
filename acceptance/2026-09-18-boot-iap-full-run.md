@@ -4,10 +4,7 @@
 的 `CHK-A6`，判据在 `$PROD/docs/engineering/HOW-TO-RUN-TESTS.md`，需求在
 `$PROD/docs/modules/M1-firmware-upgrade.md`。**这里只记这一轮谁跑了、结果是什么。**
 
-⚠️ **这个落点是临时的。** 「验收单的结果记在哪」还没有定论，⬜ 在
-`$PROD/docs/tables/ID-MAP.md` 第 32 行，由票 `PTG-01`（逐板验收记录存在哪，
-`$PROD/maps/production-test-gap/issues/PTG-01-where-do-per-board-records-go.md`）回答。
-那张票现在 **paused，等硬件工程师用过工装之后的反馈**。答完之后这份可能要搬。
+⚠️ **这个落点是临时的。** 「验收单的结果记在哪」还没有定论，定了之后这份可能要搬。
 
 ---
 
@@ -366,7 +363,7 @@ target voltage during the cut: 0.00V -- confirmed off
 
 备份域是固件自己清的：
 bootloader 选 LSE、Arduino core 选 LSI，HAL 见 `RTCSEL` 要变就强制复位整个备份域。
-决定、理由和修法见 [DECISIONS.md 第 57 条](../../../OpenPLC_Docs/docs/tables/DECISIONS.md)。
+决定、理由和修法见 [DECISIONS.md 第 57 条](../../../OpenPLC_Instruction/docs/tables/DECISIONS.md)。
 
 ### 证据：不断电的对照实验
 

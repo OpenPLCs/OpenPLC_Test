@@ -1,7 +1,6 @@
 // Tunnels raw Ethernet frames between a Renode switch and a host process over
 // 127.0.0.1 UDP, one datagram per frame. Renode has no DHCP server and on
 // Windows no TAP without a driver; netpeer.py is the other end.
-// $PROD/maps/sim-coverage/SIM-02-findings.md
 using System;
 using System.Net;
 using System.Net.Sockets;

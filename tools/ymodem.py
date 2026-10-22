@@ -5,7 +5,6 @@
 
 One file per batch, 1024-byte packets, CRC-16. Bytes other than the
 receiver's answers are skipped: the board prints its own lines on RS232.
-Decided in $PROD/maps/core-examples-on-board/issues/EXB-03-how-does-a-file-get-from-rs232-onto-the-sd-card.md
 """
 
 import binascii

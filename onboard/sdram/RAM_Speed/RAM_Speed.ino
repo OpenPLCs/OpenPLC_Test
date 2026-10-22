@@ -10,7 +10,7 @@ OPENPLC_APP_VERSION(1, 0, 0);
  *   ROW <cache> <region> <op> <bytes> <cycles> <MiB/s> <check>
  *   DONE
  * How to run it and where the numbers go:
- * OpenPLC_Docs docs/engineering/HOW-TO-RUN-TESTS.md "RAM 速率实验".
+ * OpenPLC_Instruction docs/engineering/HOW-TO-RUN-TESTS.md "RAM 速率实验".
  */
 
 #include <OpenPLC_SDRAM.h>

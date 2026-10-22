@@ -38,7 +38,8 @@ from run import (FQBN, PLATFORM, RENODE_TIMEOUT, boot_log_commands, boot_log_tex
 import netpeer  # noqa: E402
 import ymodem  # noqa: E402
 
-# Serial on UART4 instead of USB CDC: $PROD/maps/sim-coverage/SIM-01-findings.md.
+# Serial on UART4 instead of USB CDC: Renode does not model USB
+# ($PROD/docs/build/BUILD-AND-TEST.md, "USB support").
 FQBN_SIM = FQBN.replace("usb=CDCgen", "usb=CDC")
 
 GPIO_BASE = {"A": 0x58020000, "B": 0x58020400, "C": 0x58020800, "D": 0x58020C00, "E": 0x58021000,
@@ -50,7 +51,8 @@ SD_IMAGE_SIZE = 64 << 20
 BOOT_S = 8
 BRIDGE_CS = HERE / "udp_frame_bridge.cs"
 
-# LAN8742A as in Renode's nucleo_h753zi.repl: $PROD/maps/sim-coverage/SIM-02-findings.md.
+# LAN8742A as in Renode's nucleo_h753zi.repl; the platform has no PHY, and without
+# one the app never gets a link.
 PHY = ("phy: Network.EthernetPhysicalLayer @ ethernet 0 { BasicControl: 0x3100; BasicStatus: 0x782D; "
        "Id1: 0x0007; Id2: 0xC130; AutoNegotiationAdvertisement: 0x01E1; "
        "AutoNegotiationLinkPartnerBasePageAbility: 0x0001; AutoNegotiationExpansion: 0x0064; "
@@ -181,7 +183,7 @@ def header(w, ex):
     lines.append("usart3 CreateFileBackend @%s/usart3.txt true" % p)
     if ex.real_time:
         # About as fast as the wall clock, so a peer on the host keeps pace
-        # ($PROD/maps/sim-coverage/SIM-03-findings.md).
+        # (the default 100 MIPS runs about 15x slower than real time).
         lines.append("cpu PerformanceInMips 10")
     return lines
 
@@ -494,7 +496,7 @@ class ThrottledSocket:
     """The serial-port shape ymodem.py wants, over Renode's socket terminal.
 
     Renode's UART does not pace bytes at the baud rate; a whole packet at once
-    overruns the core's 64-byte receive buffer ($PROD/maps/sim-coverage/SIM-03-findings.md).
+    overruns the core's 64-byte receive buffer.
     """
 
     def __init__(self, port):

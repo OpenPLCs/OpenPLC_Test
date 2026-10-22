@@ -7,7 +7,7 @@ cases (TestCase) and IAPTool-driven checks that used to need a real board.
 
 The stand-in runs the real IAP code; what it replaces (lwIP and the PHY, USB,
 real flash timing, the BOOT0 button) is why each case still has a real-board
-row in M1 / M2. The split is in $PROD/maps/sim-coverage/SIM-05-findings.md.
+row in M1 / M2.
 
 Exit 0 = all passed, 1 = at least one failed, 2 = prerequisites missing.
 """

@@ -29,8 +29,7 @@ T2-18 runs first because it is the only one that must change nothing: it is
 judged by the board still being in the state it was in beforehand.
 
 Requirement: R2-04 (revoking a delegated certificate). The criteria are in
-$PROD/docs/modules/M2-ownership.md section 4, and the G table of
-$PROD/maps/owner-revoke-and-boot-upgrade/CHANGE-LIST.md.
+$PROD/docs/modules/M2-ownership.md section 4.
 
 ⚠️ PRECONDITION, established by this script but NOT created out of nothing:
 
@@ -669,7 +668,7 @@ def case_t2_19_20(st, args):
 
     This is the case whose absence let a real defect through: T2-15 to T2-18 all
     passed while a board could only ever be revoked once, because not one of them
-    revoked twice. See OWN-06 in $PROD/maps/owner-revoke-and-boot-upgrade/.
+    revoked twice.
 
     Runs last: it needs the board in the bootloader and it spends owner slots.
     """

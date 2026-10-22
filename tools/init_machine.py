@@ -368,9 +368,9 @@ SETTINGS = [
     ("REF_REPO", "path", detect_repo("Hello_World_OpenPLC"), False,
      ["CubeIDE reference project for the same board. Optional; read it before",
       "inventing a new way to drive a peripheral."]),
-    ("DOCS_REPO", "path", detect_repo("OpenPLC_Docs"), False,
-     ["The OpenPLC_Docs checkout: the product-level documents and the open",
-      "questions. It sits beside the product repos. P8, P9 and P12 read it."]),
+    ("DOCS_REPO", "path", detect_repo("OpenPLC_Instruction"), False,
+     ["The OpenPLC_Instruction checkout: the product design documents.",
+      "It sits beside the product repos. P8, P9 and P12 read it."]),
 
     ("__section__", "Arduino",
      ["A15 is Arduino's data directory. CORE_LIVE is the board package the IDE",
@@ -459,7 +459,7 @@ EXAMPLES = {
         "ETSPROD_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_ETS_Prod",
         "HW_REPO": r"E:\WorkSpace\Schaeffer-AG\Hardware",
         "REF_REPO": r"E:\WorkSpace\Schaeffer-AG\ref\Hello_World_OpenPLC",
-        "DOCS_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_Docs",
+        "DOCS_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_Instruction",
         "A15": r"C:\Users\you\AppData\Local\Arduino15",
         "CORE_LIVE": r"C:\Users\you\AppData\Local\Arduino15\packages\OpenPLC_Alpha\hardware\stm32\0.1.3-pre",
         "CUBEIDE": r"D:\ST\STM32CubeIDE_1.10.0",
@@ -481,7 +481,7 @@ EXAMPLES = {
         "ETSPROD_REPO": "/home/you/Documents/WorkSpace/OpenPLC_ETS_Prod",
         "HW_REPO": "/home/you/Documents/WorkSpace/Hardware",
         "REF_REPO": "/home/you/Documents/WorkSpace/ref/Hello_World_OpenPLC",
-        "DOCS_REPO": "/home/you/Documents/Schaeffer-AG/OpenPLC_Docs",
+        "DOCS_REPO": "/home/you/Documents/Schaeffer-AG/OpenPLC_Instruction",
         "A15": "/home/you/.arduino15",
         "CORE_LIVE": "/home/you/.arduino15/packages/OpenPLC_Alpha/hardware/stm32/0.1.3-pre",
         "CUBEIDE": "/opt/st/stm32cubeide_1.10.0",
@@ -506,7 +506,7 @@ EXAMPLES = {
         "ETSPROD_REPO": "/Users/you/WorkSpace/OpenPLC_ETS_Prod",
         "HW_REPO": "/Users/you/WorkSpace/Hardware",
         "REF_REPO": "/Users/you/WorkSpace/ref/Hello_World_OpenPLC",
-        "DOCS_REPO": "/Users/you/Schaeffer-AG/OpenPLC_Docs",
+        "DOCS_REPO": "/Users/you/Schaeffer-AG/OpenPLC_Instruction",
         "A15": "/Users/you/Library/Arduino15",
         "CORE_LIVE": "/Users/you/Library/Arduino15/packages/OpenPLC_Alpha/hardware/stm32/0.1.3-pre",
         "CUBEIDE": "/Applications/STM32CubeIDE.app",
@@ -539,8 +539,7 @@ WHAT_IT_IS = {
     "HW_REPO": "the Hardware clone -- schematics and production files. Forgejo only, "
                "there is no GitHub copy of it",
     "REF_REPO": "the Hello_World_OpenPLC clone -- CubeIDE reference project for this board",
-    "DOCS_REPO": "the OpenPLC_Docs clone -- the product-level documents and the "
-                 "open questions",
+    "DOCS_REPO": "the OpenPLC_Instruction clone -- the product design documents",
     "A15": "Arduino's data directory, the one holding packages/",
     "CORE_LIVE": "the installed OpenPLC_Alpha board package the IDE compiles against",
     "CUBEIDE": "the STM32CubeIDE install ROOT -- the directory that contains its plugins dir "
@@ -955,7 +954,7 @@ def main():
             Warn("  Skipped at the prompt. Install one and re-run, or --set it.")
         else:
             Warn("  Not asked for interactively, because %s." % why_not)
-        Warn("  OpenPLC_Docs docs/build/BUILD-AND-TEST.md says what each one is and where to get it.")
+        Warn("  OpenPLC_Instruction docs/build/BUILD-AND-TEST.md says what each one is and where to get it.")
 
     Section("files")
     targets = [("machine.py", render_python(RESOLVED))]

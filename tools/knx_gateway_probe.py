@@ -10,7 +10,7 @@ Without --gateway, the first gateway that answers a KNXnet/IP search is used.
 3. Opens a second tunnel while the first is up, to see whether two clients
    (ETS and this script) can be connected at the same time.
 
-Ticket: $PROD/maps/knx-examples/issues/KEX-04-can-the-script-talk-through-the-ip-gateway.md
+Uses xknx, which handles the sequence numbers, resends and heartbeats of the
 UDP tunnels. Run it from a PC on the gateway's subnet: from another subnet
 neither gateway seen so far answered (2026-10-09).
 """

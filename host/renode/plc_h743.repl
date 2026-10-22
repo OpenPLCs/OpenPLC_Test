@@ -1,5 +1,4 @@
 // Renode's STM32H743 platform with the model gaps the bootloader trips over.
-// $PROD/maps/renode-simulation/REN-02-findings.md lists them.
 using "platforms/cpus/stm32h743.repl"
 
 // As in stm32h7.repl, plus CR2: BREN and BRRDY set, so HAL_PWREx_EnableBkUpReg()

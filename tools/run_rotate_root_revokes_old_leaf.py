@@ -27,9 +27,7 @@ product working. It is also the step that leaves the board usable again, so it
 runs even when T2-12 or T2-13 failed.
 
 Requirement: R2-02 (a board can leave the factory root behind without an
-ST-Link). The criteria and the path they belong to are in
-$PROD/maps/five-paths-e2e-test/issues/E2E-02-what-does-security-mean-per-path.md
-(path 5, rows c/d/e) and $PROD/docs/modules/M2-ownership.md section 4.
+ST-Link). The criteria are in $PROD/docs/modules/M2-ownership.md section 4.
 
 ⚠️ PRECONDITION, established by this script but NOT created out of nothing:
 

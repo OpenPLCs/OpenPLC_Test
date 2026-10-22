@@ -1,4 +1,4 @@
-"""TODO #70 -- reproduce USB CDC output stopping until the port is reopened.
+"""Reproduce USB CDC output stopping until the port is reopened.
 
     python tools/run_usb_cdc_stall.py --key Output/five-paths-keys/wipe/wipe_root.pem
     python tools/run_usb_cdc_stall.py --skip-upload
@@ -8,8 +8,9 @@
 Uploads onboard/usb/CDC_Stall over USB CDC, then plays the host side in a few
 ways and reports, per phase, how many "seq" lines arrived on USB and what the
 board says on RS232 about DTR, CDC_connected() and dropped writes. Separates
-the two candidate causes in $PROD/work/TODO.md #70: the terminal not raising
-DTR, and the host not reading for longer than USB_CDC_TRANSMIT_TIMEOUT.
+the two candidate causes: the terminal not raising DTR, and the host not
+reading for longer than USB_CDC_TRANSMIT_TIMEOUT ($PROD/docs/tables/DECISIONS.md
+124, "USB 打印卡住").
 
 Exit 0 = ran, 2 = setup problem. It reports; it does not judge.
 """

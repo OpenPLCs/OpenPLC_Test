@@ -10,10 +10,9 @@ Serial (decision 147); uploads go over the same port, so it is closed for each
 upload. Steps only a person can do -- ETS, the BOOT0 button, 24 V on DI1,
 hearing a relay, watching an LED, reading a meter -- are asked for the way
 run_examples.py asks. Group address defaults: the test box's existing ones and
-the board's from the KEX-06 table.
+the board's as the T3-14 ETS project sets them.
 
 Cases and criteria: $PROD/docs/modules/M3-app-runtime.md, T3-13..T3-20.
-Decided in $PROD/maps/knx-examples/issues/KEX-06-how-does-each-test-case-judge.md
 
 Exit 0 = every case passed, 1 = one failed, 2 = setup problem.
 """
