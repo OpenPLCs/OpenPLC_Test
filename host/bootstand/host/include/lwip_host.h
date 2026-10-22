@@ -94,4 +94,13 @@ void bridge_init(u16_t fw_port, u16_t real_port, u16_t discovery_port);
  * they trigger, plus the tcp_poll timers. */
 void bridge_poll(int timeout_ms);
 
+/* The receive callback asks whether the packet was sent to this board alone
+ * (decision 161 blinks LED3 on unicast). The stand-in has no LED and its PC
+ * sockets do not say, so every packet counts as unicast. */
+struct netif;
+#define ip_current_dest_addr()        ((const ip_addr_t *)0)
+#define ip_current_netif()            ((struct netif *)0)
+#define ip_addr_isbroadcast(addr, nf) ((void)(addr), (void)(nf), 0)
+#define ip_addr_ismulticast(addr)     ((void)(addr), 0)
+
 #endif /* BOOTSTAND_LWIP_HOST_H_ */

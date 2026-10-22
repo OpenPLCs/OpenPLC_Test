@@ -1,7 +1,7 @@
 """Build the bootloader headless, flash it over ST-Link, capture the boot log, and
 give the BG1 verdict (is the SDRAM staging buffer usable).
 
-    python tools/flash_bootloader.py                  build + flash + watch
+    python tools/flash_bootloader.py                  build + flash + backup-domain reset + watch
     python tools/flash_bootloader.py --skip-build      flash what is already built
     python tools/flash_bootloader.py --elf <boot.elf>  flash this image, no build
     python tools/flash_bootloader.py --reset-only      only reset and watch; never writes flash
@@ -38,6 +38,48 @@ DEFAULT_LIMIT = 131072
 # answers "openplc_server_where_r_y". Both are string literals in the image.
 FIXTURE_MARK = b"pt.caps"
 BOOTLOADER_MARK = b"openplc_server_where_r_y"
+
+# Backup-domain reset registers ($BOOT stm32h743xx.h: PWR_BASE, RCC_BASE + BDCR).
+PWR_CR1 = 0x58024800
+PWR_CR1_DBP = 1 << 8
+RCC_BDCR = 0x58024470
+RCC_BDCR_BDRST = 1 << 16
+
+
+def reset_backup_domain(cli, *then):
+    """Stop LSE so the bootloader restarts it at its own drive level; RTC time
+    and backup registers are lost ($PROD decision 157, PORTTOOL-FLOW.md C.3.5).
+    `then` is appended to the write call (e.g. "-rst"). True on success.
+
+    All writes go in one call: every mode=UR connect is a system reset, which
+    clears DBP again.
+    """
+    out = subprocess.run(
+        [str(cli), "-c", "port=SWD", "mode=UR", "-r32", hex(PWR_CR1), "0x4"],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, errors="replace").stdout or ""
+    # -r32 prints "0x<addr> : <word> ..." (same parsing as reset_board_to_factory_state.read_words).
+    m = re.search(r"(?mi)^\s*0x%08X\s*:\s*([0-9A-F]{8})\b" % PWR_CR1, out)
+    if "Error" in out or not m:
+        Fail("could not read PWR_CR1 - backup domain NOT reset")
+        print("\n".join(out.strip().splitlines()[-6:]))
+        return False
+    cr1 = int(m.group(1), 16)
+    out = subprocess.run(
+        [str(cli), "-c", "port=SWD", "mode=UR",
+         "-w32", hex(PWR_CR1), hex(cr1 | PWR_CR1_DBP),
+         "-w32", hex(RCC_BDCR), hex(RCC_BDCR_BDRST),
+         "-w32", hex(RCC_BDCR), "0x0"] + list(then),
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, errors="replace").stdout or ""
+    for line in out.splitlines():
+        if re.search(r"Error|Reset", line):
+            print(line)
+    if "Error" in out:
+        Fail("resetting the backup domain reported an error")
+        return False
+    print("backup domain reset (RTC and backup registers cleared, LSE restarts at boot)")
+    return True
 
 
 def looks_like_bootloader(image_path):
@@ -155,13 +197,19 @@ def main():
     mark = boot_log_next(read_boot_log_swd(cli) or [])
 
     argv = ([str(cli), "-c", "port=SWD", "mode=UR", "-rst"] if args.reset_only
-            else [str(cli), "-c", "port=SWD", "mode=UR", "-w", str(elf), "-rst"])
+            else [str(cli), "-c", "port=SWD", "mode=UR", "-w", str(elf)])
     out = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, errors="replace").stdout or ""
     keep = r"Error|Reset" if args.reset_only else r"Download|verified|Error|Reset"
     for line in out.splitlines():
         if re.search(keep, line):
             print(line)
+    if not args.reset_only:
+        if "Error" in out:
+            Fail("the download reported an error - backup domain not reset")
+            return 1
+        if not reset_backup_domain(cli, "-rst"):
+            return 1
 
     time.sleep(args.seconds)
     allof = "\n".join(t for _, t in read_boot_log_swd(cli, since=mark) or [])

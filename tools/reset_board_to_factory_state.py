@@ -1,6 +1,6 @@
 """Put a board back into the state it leaves the factory in, and prove it got there.
 
-    python tools/reset_board_to_factory_state.py                   erase, flash, verify
+    python tools/reset_board_to_factory_state.py                   erase, flash, reset backup domain, verify
     python tools/reset_board_to_factory_state.py --elf <boot.elf>  flash this image
     python tools/reset_board_to_factory_state.py --check-only      verify only; never writes
     python tools/reset_board_to_factory_state.py --seconds 20      watch the boot log longer
@@ -39,7 +39,7 @@ sys.path.insert(0, str(HERE))
 from common import (Fail, Ok, Section, Warn, assert_target_reachable,  # noqa: E402
                     boot_log_next, cfg, get_programmer_cli, get_scratch_file,
                     read_boot_log_swd)
-from flash_bootloader import looks_like_bootloader  # noqa: E402
+from flash_bootloader import looks_like_bootloader, reset_backup_domain  # noqa: E402
 
 # Sector 15 layout: $PROD/docs/modules/M1/SECTOR-15.md; must match
 # $BOOT/IAPServer/bootloader_state.c and owner_slot.h.
@@ -197,6 +197,10 @@ def main():
                 Fail("writing the calibration values back failed; they are saved at %s"
                      % calib_file)
                 return 1
+
+        Section("Reset the backup domain")
+        if not reset_backup_domain(cli):
+            return 1
 
     Section("Reset + capture boot log")
     mark = boot_log_next(read_boot_log_swd(cli) or [])

@@ -143,3 +143,7 @@ void __disable_irq(void) { }
 uint32_t __get_PRIMASK(void) { return 0U; }
 void __set_PRIMASK(uint32_t primask) { (void)primask; }
 
+/* LED3 identify blink (decision 161): no LED on the PC. */
+void identify_blink_request(void) { }
+void openplc_identify_blink_request(void) { }
+

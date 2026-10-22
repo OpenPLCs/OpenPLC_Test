@@ -112,4 +112,7 @@ extern RTC_HandleTypeDef hrtc;
 /* $BOOT/Core/Src/main.c; here in boot/boot_glue.c. */
 void boot_log_flush_stdout(void);
 
+/* LED3 identify blink (decision 161): the stand-in has no LED. */
+void identify_blink_request(void);
+
 #endif
