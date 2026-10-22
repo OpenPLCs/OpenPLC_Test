@@ -19,7 +19,7 @@ agree with each other and that the user's paths work on a real board.
 ## Requirements
 
 Go 1.23+, Python 3, and these repositories cloned beside this one:
-`OpenPLC_IAPTool`, `OpenPLC_BootLoader`, `open_plc_arduino`
+`OpenPLC_IAPTool`, `OpenPLC_BootLoader`, `OpenPLC_Arduino_PKG`
 (`OpenPLC_PortsTestingTool` optional). On-board cases also need STM32CubeIDE
 (for STM32_Programmer_CLI) and the Arduino IDE.
 

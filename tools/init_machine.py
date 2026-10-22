@@ -349,7 +349,7 @@ SETTINGS = [
       "See $PROD/docs/repo/ARCHITECTURE.md."]),
     ("BOOT_REPO", "path", detect_repo("OpenPLC_BootLoader"), True,
      ["bootloader, CubeIDE project, and the shared docs"]),
-    ("CORE_REPO", "path", detect_repo("open_plc_arduino"), True,
+    ("CORE_REPO", "path", detect_repo("OpenPLC_Arduino_PKG"), True,
      ["the Arduino board package, under version control"]),
     ("TEST_REPO", "path", detect_repo("OpenPLC_Test"), True,
      ["this repo"]),
@@ -452,7 +452,7 @@ NOTES = []
 EXAMPLES = {
     "windows": {
         "BOOT_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_BootLoader",
-        "CORE_REPO": r"E:\WorkSpace\Schaeffer-AG\open_plc_arduino",
+        "CORE_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_Arduino_PKG",
         "TEST_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_Test",
         "IAPTOOL_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_IAPTool",
         "PORTTOOL_REPO": r"E:\WorkSpace\Schaeffer-AG\OpenPLC_PortsTestingTool",
@@ -474,7 +474,7 @@ EXAMPLES = {
     },
     "posix": {
         "BOOT_REPO": "/home/you/Documents/WorkSpace/OpenPLC_BootLoader",
-        "CORE_REPO": "/home/you/Documents/WorkSpace/open_plc_arduino",
+        "CORE_REPO": "/home/you/Documents/WorkSpace/OpenPLC_Arduino_PKG",
         "TEST_REPO": "/home/you/Documents/WorkSpace/OpenPLC_Test",
         "IAPTOOL_REPO": "/home/you/Documents/WorkSpace/OpenPLC_IAPTool",
         "PORTTOOL_REPO": "/home/you/Documents/WorkSpace/OpenPLC_PortsTestingTool",
@@ -499,7 +499,7 @@ EXAMPLES = {
     # wrong answer dressed as help -- neither exists there.
     "macos": {
         "BOOT_REPO": "/Users/you/WorkSpace/OpenPLC_BootLoader",
-        "CORE_REPO": "/Users/you/WorkSpace/open_plc_arduino",
+        "CORE_REPO": "/Users/you/WorkSpace/OpenPLC_Arduino_PKG",
         "TEST_REPO": "/Users/you/WorkSpace/OpenPLC_Test",
         "IAPTOOL_REPO": "/Users/you/WorkSpace/OpenPLC_IAPTool",
         "PORTTOOL_REPO": "/Users/you/WorkSpace/OpenPLC_PortsTestingTool",
@@ -531,7 +531,7 @@ def example_for(key):
 
 WHAT_IT_IS = {
     "BOOT_REPO": "the OpenPLC_BootLoader clone -- the bootloader",
-    "CORE_REPO": "the open_plc_arduino clone -- the board package under git",
+    "CORE_REPO": "the OpenPLC_Arduino_PKG clone -- the board package under git",
     "TEST_REPO": "this repo, OpenPLC_Test",
     "IAPTOOL_REPO": "the OpenPLC_IAPTool clone: IAPTool, the uploader under test",
     "PORTTOOL_REPO": "the OpenPLC_PortsTestingTool clone (calibration-area contract only)",
