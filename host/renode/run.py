@@ -1,0 +1,276 @@
+"""Boots every OpenPLC_Ports example through the real bootloader in Renode. Case T3-05.
+
+    python run.py                   all of them
+    python run.py --only CAN        only examples whose name matches
+    python run.py --boot BIN        use this bootloader image instead of building one
+
+Builds the current $BOOT source once. Per example: compile it, lay out flash as after a claim and one successful
+upload (the bootloader, the signed app, a claimed root area, one metadata
+record, the sector-15 marker), run Renode, and judge that the
+bootloader jumped into the app, setup() ran once, loop() is still being entered
+at the end, and nothing faulted. Criteria and what this cannot see:
+$PROD/docs/modules/M3-app-runtime.md, "测试怎么跑".
+
+Exit 0 = every example passed, 1 = at least one failed, 2 = prerequisites
+missing.
+"""
+
+import argparse
+import os
+import re
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+import threading
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent.parent / "tools"))
+
+from build_image import build_copy  # noqa: E402
+from common import (BOOT_LOG_ADDR, BOOT_LOG_SIZE, EXE, Fail, Ok, Section, cfg,  # noqa: E402
+                    get_iap_tool, get_scratch_dir, parse_boot_log, run_capture)
+
+FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
+        "upload_method=ethMethod")
+
+FLASH, FLASH_SIZE = 0x08000000, 2 << 20
+APP = 0x08020000
+# Sector-15 layout: $BOOT/IAPServer/bootloader_state.c and owner_slot.h. The
+# bootloader re-verifies all of it at every boot, so a drift shows up here as
+# "did not jump into the app".
+ROOT_AREA = 0x081E2000
+META = 0x081E4000
+MARKER = 0x081FFFE0
+REC_METADATA, REC_SLOTS = 0x4D, 7
+OWNER_FORMAT_VER = 4
+# The UID the Renode run pins (run_renode()); the owner record names that board.
+RENODE_UID = bytes(12)
+
+# The bootloader spends about 6.5 s of virtual time in its boot-relay window.
+RUN_SECONDS = 15
+# Second run with a fresh hook on loop(): proves loop() is still being entered.
+TAIL_SECONDS = 10
+
+SD_IMAGE_SIZE = 64 << 20
+# Wall clock. A failing command in a Renode script leaves Renode at its prompt for good.
+RENODE_TIMEOUT = 1800
+
+PLATFORM = HERE / "plc_h743.repl"
+
+
+def boot_log_commands():
+    """Monitor lines that dump the SRAM4 boot log ($PROD/docs/modules/M1/BOOT-LOG.md)
+    at the end of a run. The bootloader logs only there and on SWO, and the core's
+    system lines go there and to USB, which Renode does not model."""
+    return (['echo "BOOTLOG BEGIN"']
+            + ["sysbus ReadDoubleWord 0x%08X" % (BOOT_LOG_ADDR + 4 * i) for i in range(BOOT_LOG_SIZE // 4)]
+            + ['echo "BOOTLOG END"'])
+
+
+def boot_log_text(console):
+    """The boot log's lines from a console that ran boot_log_commands(), one per
+    line; "" when the dump is missing or the buffer is not valid."""
+    console = re.sub(r"\x1b\[[0-9;]*m", "", console)
+    if "BOOTLOG BEGIN" not in console:
+        return ""
+    body = console.rsplit("BOOTLOG BEGIN", 1)[1].split("BOOTLOG END", 1)[0]
+    words = [int(v, 16) for v in re.findall(r"(?m)^\s*(0x[0-9A-Fa-f]{1,8})\s*$", body)]
+    if len(words) < BOOT_LOG_SIZE // 4:
+        return ""
+    data = struct.pack("<%dI" % (BOOT_LOG_SIZE // 4), *words[:BOOT_LOG_SIZE // 4])
+    return "".join(t + "\n" for _, t in parse_boot_log(data))
+
+
+def symbols(nm, elf):
+    out, _ = run_capture([nm, elf])
+    return {m.group(2): int(m.group(1), 16)
+            for m in re.finditer(r"^([0-9a-f]{8}) [TtWBbDd] (\S+)\r?$", out, re.M)}
+
+
+def owner_record(root_pub):
+    # The first claim: unsigned, generation 1, bound to this board's uid.
+    rec = struct.pack("<BBHII", ord("O"), 0, OWNER_FORMAT_VER, 1, 0) + root_pub + RENODE_UID
+    return rec + bytes(64) + bytes(8)
+
+
+def flash_banks(boot_bin, app_bin, iap, work):
+    # APPDATA points IAPTool away from the user's own key directory.
+    env = dict(os.environ, APPDATA=str(work / "appdata"))
+    key = work / "root.pem"
+    subprocess.run([str(iap), "genkey", str(work / "root")], env=env, capture_output=True, check=True)
+    root_pub = bytes.fromhex(subprocess.run([str(iap), "pubkey", str(key)], env=env,
+                                            capture_output=True, text=True, check=True)
+                             .stdout.strip().splitlines()[-1].strip())
+    subprocess.run([str(iap), "sign", str(app_bin), str(key), "--out=" + str(work / "app")],
+                   env=env, capture_output=True, check=True)
+    cert = subprocess.run([str(iap), "cert", "--key=" + str(key)], env=env,
+                          capture_output=True, text=True, check=True).stdout.strip()
+    app, sig = app_bin.read_bytes(), (work / "app.sig").read_bytes()
+    rec = struct.pack("<BBHII", REC_METADATA, REC_SLOTS, 0, 0, len(app)) + sig + bytes.fromhex(cert) + bytes(20)
+    assert len(rec) == REC_SLOTS * 32
+    # Erased flash reads 0xFF; Renode's blank memory is 0x00, which the
+    # bootloader takes for corrupt records.
+    img = bytearray(b"\xff" * FLASH_SIZE)
+    boot = boot_bin.read_bytes()
+    img[:len(boot)] = boot
+    img[APP - FLASH:APP - FLASH + len(app)] = app
+    img[META - FLASH:META - FLASH + len(rec)] = rec
+    owner = owner_record(root_pub)
+    assert len(owner) == 160
+    img[ROOT_AREA - FLASH:ROOT_AREA - FLASH + len(owner)] = owner
+    marker = struct.pack("<II", 0x4C353153, 1) + bytes(24)
+    img[MARKER - FLASH:MARKER - FLASH + len(marker)] = marker
+    (work / "bank1.bin").write_bytes(img[:FLASH_SIZE // 2])
+    (work / "bank2.bin").write_bytes(img[FLASH_SIZE // 2:])
+
+
+def run_renode(renode, work, sym, sd_image):
+    w = work.as_posix()
+    loop = sym["loop"]
+    lines = [
+        'mach create "plc"',
+        "machine LoadPlatformDescription @%s" % PLATFORM.as_posix(),
+        # The platform fills the UID with random words; pin it to RENODE_UID.
+        "sysbus WriteDoubleWord 0x1FF1E800 0",
+        "sysbus WriteDoubleWord 0x1FF1E804 0",
+        "sysbus WriteDoubleWord 0x1FF1E808 0",
+        # LoadBinary only: LoadELF zero-fills .data/.bss at their flash load address.
+        "sysbus LoadBinary @%s/bank1.bin 0x%08X" % (w, FLASH),
+        "sysbus LoadBinary @%s/bank2.bin 0x%08X" % (w, FLASH + FLASH_SIZE // 2),
+        "cpu VectorTableOffset 0x%08X" % FLASH,
+        # The card-detect pin reads "present" in Renode; without a card the
+        # SDMMC model never answers CMD0 and setup() hangs.
+        "machine SdCardFromFile @%s sysbus.sdmmc 0x%X false" % (sd_image.as_posix(), SD_IMAGE_SIZE),
+        'cpu AddHook 0x%08X "self.InfoLog(\'HIT setup\')"' % sym["setup"],
+        # One-shot: a hook left on loop() slows examples that loop without delay() to a crawl.
+        'cpu AddHook 0x%08X "self.InfoLog(\'HIT loop\'); self.RemoveHooksAt(0x%08X)"' % (loop, loop),
+        'cpu AddHook 0x%08X "self.InfoLog(\'HIT fault\')"' % sym["Default_Handler"],
+        'emulation RunFor "00:00:%02d"' % RUN_SECONDS,
+        'echo "END PC"',
+        "sysbus.cpu PC",
+        'cpu AddHook 0x%08X "self.InfoLog(\'HIT endloop\'); self.RemoveHooksAt(0x%08X)"' % (loop, loop),
+        'emulation RunFor "00:00:%02d"' % TAIL_SECONDS,
+    ] + boot_log_commands() + [
+        "q",
+    ]
+    (work / "run.resc").write_text("\n".join(lines) + "\n")
+    # stdin must stay open until Renode quits: a closed or inherited stdin kills
+    # its console reader and every command after RunFor is silently dropped.
+    p = subprocess.Popen([renode, "--disable-gui", "--console", "-e", "include @%s/run.resc" % w],
+                         cwd=str(Path(renode).parent), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, text=True, errors="replace")
+    timer = threading.Timer(RENODE_TIMEOUT, p.kill)
+    timer.start()
+    out = p.stdout.read()
+    p.wait()
+    timer.cancel()
+    (work / "console.txt").write_text(out, encoding="utf-8")
+    return out
+
+
+# These wait in setup() for a PC to open the USB serial port (decision 124);
+# Renode has no USB host, so loop() is never reached.
+WAITS_FOR_USB_HOST = {"USB_Serial"}
+
+
+def judge(out, app_bin, name=""):
+    log = boot_log_text(out)
+    m = re.search(r"END PC\s+(0x[0-9a-fA-F]+)", out)
+    pc = int(m.group(1), 16) if m else None
+    app = app_bin.read_bytes()
+    off = pc - APP if pc is not None else -1
+    stuck = 0 <= off < len(app) - 1 and struct.unpack_from("<H", app, off)[0] == 0xE7FE  # b .
+    # Renode folds repeated log lines into "(N)", so count occurrences, not lines.
+    checks = [
+        ("bootloader jumped into the app", "[sys][BL] ** APP Mod" in log),
+        ("setup() entered once", out.count("HIT setup") == 1),
+        ("no fault", "HIT fault" not in out),
+        ("PC readable and not parked on 'b .'", pc is not None and not stuck),
+    ]
+    if name not in WAITS_FOR_USB_HOST:
+        checks[2:2] = [("loop() entered", out.count("HIT loop") == 1),
+                       ("loop() still entered at the end", out.count("HIT endloop") == 1)]
+    return checks, pc
+
+
+def main():
+    ap = argparse.ArgumentParser(add_help=True)
+    ap.add_argument("--only", default="")
+    ap.add_argument("--boot", default="", help="a bootloader image to use instead of building $BOOT")
+    args = ap.parse_args()
+
+    renode = getattr(cfg, "RENODE", "")
+    arduino_cli = getattr(cfg, "ARDUINO_CLI", "")
+    cli_config = getattr(cfg, "ARDUINO_CLI_CONFIG", "")
+    tools = Path(cfg.A15) / "packages" / "OpenPLC_Alpha" / "tools"
+    nm = sorted(tools.glob("xpack-arm-none-eabi-gcc/*/bin/arm-none-eabi-nm" + EXE))
+    iap = get_iap_tool()
+
+    missing = [
+        (not renode or not Path(renode).exists(), "Renode not found. Set $RENODE in config/machine.py"),
+        (not arduino_cli or not Path(arduino_cli).exists(), "arduino-cli not found. Set $ARDUINO_CLI in config/machine.py"),
+        (not cli_config or not Path(cli_config).exists(), "arduino-cli config not found at %s" % cli_config),
+        (args.boot and not Path(args.boot).exists(), "--boot %s not found" % args.boot),
+        (not nm, "arm-none-eabi-nm not found under %s" % tools),
+    ]
+    if any(bad for bad, _ in missing):
+        for bad, why in missing:
+            if bad:
+                Fail(why)
+        return 2
+    examples_dir = Path(cfg.CORE_LIVE) / "libraries" / "OpenPLC_Ports" / "examples"
+    examples = [d for d in sorted(examples_dir.iterdir())
+                if (d / (d.name + ".ino")).exists() and args.only.lower() in d.name.lower()]
+    if not examples:
+        Fail("no examples under %s match '%s'" % (examples_dir, args.only))
+        return 2
+
+    # Unique per run: other Renode runs may be going on at the same time.
+    root = Path(tempfile.mkdtemp(prefix="renode_t3-05_", dir=str(get_scratch_dir())))
+    # The current source, not whatever $BOOT/Debug last held.
+    boot_bin = Path(args.boot) if args.boot else build_copy(root / "boot")
+    if boot_bin is None:
+        Fail("FAIL - the bootloader does not build; files in %s" % root)
+        return 1
+    sd_image = root / "sd.img"
+    with open(sd_image, "wb") as f:
+        f.truncate(SD_IMAGE_SIZE)
+
+    failed = []
+    for ex in examples:
+        Section(ex.name)
+        work = root / ex.name
+        build = work / "build"
+        out, rc = run_capture([arduino_cli, "compile", "--config-file", cli_config, "--fqbn", FQBN,
+                               "--build-path", build, ex])
+        if rc != 0:
+            Fail("FAIL - does not compile (P5 has the details)")
+            failed.append(ex.name)
+            continue
+        elf, app_bin = build / (ex.name + ".ino.elf"), build / (ex.name + ".ino.bin")
+        flash_banks(boot_bin, app_bin, iap, work)
+        out = run_renode(renode, work, symbols(nm[-1], elf), sd_image)
+        checks, pc = judge(out, app_bin, ex.name)
+        for name, ok in checks:
+            (Ok if ok else Fail)("  %s %s" % ("ok  " if ok else "FAIL", name))
+        if all(ok for _, ok in checks):
+            Ok("PASS")
+        else:
+            Fail("FAIL - end PC %s; Renode output in %s" % ("0x%08X" % pc if pc is not None else "?", work))
+            failed.append(ex.name)
+
+    Section("result")
+    print("  %d example(s), %d failed" % (len(examples), len(failed)))
+    if failed:
+        Fail("failed: " + ", ".join(failed))
+        return 1
+    shutil.rmtree(str(root), ignore_errors=True)
+    Ok("every example boots and keeps looping")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

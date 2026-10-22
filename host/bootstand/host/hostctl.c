@@ -1,0 +1,128 @@
+#include "hostctl.h"
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <windows.h>
+/* A crash in firmware code would otherwise end the process without a word. */
+static LONG WINAPI on_crash(EXCEPTION_POINTERS *e)
+{
+	/* As an offset into the image, so nm on the .exe can name it. */
+	fprintf(stderr, "[stand-in] crash 0x%08lx at image+0x%llx, address %p\n",
+			(unsigned long)e->ExceptionRecord->ExceptionCode,
+			(unsigned long long)((char *)e->ExceptionRecord->ExceptionAddress - (char *)GetModuleHandle(NULL)),
+			(e->ExceptionRecord->NumberParameters > 1) ? (void *)e->ExceptionRecord->ExceptionInformation[1] : NULL);
+	fflush(stderr);
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+host_args_t host_args = {
+	.state_dir = ".", .port = 61865, .uid = { 0x39333639U, 0x31325110U, 0x00330034U },
+	.gesture = HOST_GESTURE_NONE,
+};
+
+static void usage(void)
+{
+	fprintf(stderr, "usage: --state DIR [--port N] [--discovery-port N] [--uid HEX24] [--cold]"
+			" [--claim HEX128] [--gesture none|upload|factory]"
+			" [--fail-after-erase N] [--fail-after-program N]\n");
+	exit(2);
+}
+
+bool host_hex_decode(const char *hex, uint8_t *out, uint32_t len)
+{
+	if (strlen(hex) != (size_t)len * 2U) {
+		return false;
+	}
+	for (uint32_t i = 0; i < len; i++) {
+		unsigned int b;
+		if (sscanf(&hex[i * 2U], "%2x", &b) != 1) {
+			return false;
+		}
+		out[i] = (uint8_t)b;
+	}
+	return true;
+}
+
+void host_parse_args(int argc, char **argv)
+{
+	SetUnhandledExceptionFilter(on_crash);
+	for (int i = 1; i < argc; i++) {
+		const char *a = argv[i];
+		const char *v = (i + 1 < argc) ? argv[i + 1] : NULL;
+		if (strcmp(a, "--state") == 0 && v) {
+			host_args.state_dir = v; i++;
+		} else if (strcmp(a, "--port") == 0 && v) {
+			host_args.port = (uint16_t)atoi(v); i++;
+		} else if (strcmp(a, "--discovery-port") == 0 && v) {
+			host_args.discovery_port = (uint16_t)atoi(v); i++;
+		} else if (strcmp(a, "--uid") == 0 && v) {
+			/* As iap_keyderive prints it: w2, w1, w0. */
+			uint8_t b[12];
+			if (!host_hex_decode(v, b, 12U)) {
+				usage();
+			}
+			for (int w = 0; w < 3; w++) {
+				uint32_t x = ((uint32_t)b[w * 4] << 24) | ((uint32_t)b[w * 4 + 1] << 16)
+						| ((uint32_t)b[w * 4 + 2] << 8) | (uint32_t)b[w * 4 + 3];
+				host_args.uid[2 - w] = x;
+			}
+			i++;
+		} else if (strcmp(a, "--cold") == 0) {
+			host_args.cold = true;
+		} else if (strcmp(a, "--claim") == 0 && v) {
+			host_args.claim_hex = v; i++;
+		} else if (strcmp(a, "--gesture") == 0 && v) {
+			if (strcmp(v, "none") == 0) {
+				host_args.gesture = HOST_GESTURE_NONE;
+			} else if (strcmp(v, "upload") == 0) {
+				host_args.gesture = HOST_GESTURE_UPLOAD;
+			} else if (strcmp(v, "factory") == 0) {
+				host_args.gesture = HOST_GESTURE_FACTORY;
+			} else {
+				usage();
+			}
+			i++;
+		} else if (strcmp(a, "--fail-after-erase") == 0 && v) {
+			host_args.fail_after_erase = (uint32_t)strtoul(v, NULL, 10); i++;
+		} else if (strcmp(a, "--fail-after-program") == 0 && v) {
+			host_args.fail_after_program = (uint32_t)strtoul(v, NULL, 10); i++;
+		} else {
+			usage();
+		}
+	}
+}
+
+uint32_t host_tick_ms(void)
+{
+	static ULONGLONG t0;
+	if (t0 == 0U) {
+		t0 = GetTickCount64();
+	}
+	return (uint32_t)(GetTickCount64() - t0);
+}
+
+void host_sleep_ms(uint32_t ms)
+{
+	Sleep(ms);
+}
+
+void host_exit(int code)
+{
+	fflush(stdout);
+	fflush(stderr);
+	exit(code);
+}
+
+void host_log(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	fputs("[stand-in] ", stdout);
+	vfprintf(stdout, fmt, ap);
+	fputs("\n", stdout);
+	va_end(ap);
+	fflush(stdout);
+}
