@@ -81,7 +81,7 @@ def main():
     Section("the two copies")
     built = get_go_bin("IAPTool")
     if not built.exists():
-        Fail("no built IAPTool at %s -- run build.py in IAPTranfer_Tool" % built)
+        Fail("no built IAPTool at %s -- run build.py in OpenPLC_IAPTool" % built)
         return 2
     shipped = get_iap_tool()
     if shipped is None or not Path(shipped).exists():

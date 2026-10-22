@@ -198,7 +198,7 @@ func main() {
 
 func hasPrefix(s, p string) bool { return len(s) >= len(p) && s[:len(p)] == p }
 
-// defaultIAPToolPath is this platform's build from IAPTranfer_Tool's
+// defaultIAPToolPath is this platform's build from OpenPLC_IAPTool's
 // build.py, in the sibling repo (the IAPTool under test lives there).
 // tools/run_case.py passes --iaptool explicitly; this is for running by hand
 // from this repo's root.
@@ -207,5 +207,5 @@ func defaultIAPToolPath() string {
 	if runtime.GOOS == "windows" {
 		name += ".exe"
 	}
-	return filepath.Join("..", "IAPTranfer_Tool", "Output", runtime.GOOS, name)
+	return filepath.Join("..", "OpenPLC_IAPTool", "Output", runtime.GOOS, name)
 }
