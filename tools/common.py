@@ -407,7 +407,7 @@ def decode_serial(data):
 # SRAM4 buffer. Which test reads it where: $PROD/docs/engineering/HOW-TO-RUN-TESTS.md
 # 「测试从哪读板子的输出」; line prefixes and buffer layout: $PROD/docs/modules/M1/BOOT-LOG.md.
 BOARD_USB_VID, BOARD_USB_PID = 0x0483, 0x5740   # bootloader and core usbd_desc.c
-# CDC communication interface of USB port 1. With two CDC ports (IDE-17) port 2
+# CDC communication interface of USB port 1. With two CDC ports, port 2
 # is the next one; a single-CDC board reports no interface number on Windows.
 BOARD_LOG_INTERFACE = 0
 SYS = "[sys]"
@@ -714,7 +714,7 @@ def read_log_ports(open_ports, seconds, until=None, until_count=1):
 
 
 # ---------------------------------------------------------------- board
-BOARD_DISCOVERY_S = 20.0   # a board just reset into the bootloader can take ~20 s to answer on WLAN (IDE-16)
+BOARD_DISCOVERY_S = 20.0   # a board just reset into the bootloader can take ~20 s to answer on WLAN
 _board_ip_cache = []
 
 

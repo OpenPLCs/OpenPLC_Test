@@ -233,12 +233,12 @@ async def t3_13(ctx):
 
 
 async def t3_14(ctx):
-    """ETS programs the board; the box's devices keep their existing configuration (KEX-06)."""
+    """ETS programs the board; the box's devices keep their existing configuration (M3 T3-14)."""
     if not await run_sketch(ctx, "KNX_Switch"):
         return None
     ok = await do(ctx.board,
                   "In ETS: address this board, link its objects to the group addresses "
-                  "as in KEX-06 and download it; leave the box's devices as they are. "
+                  "given by this script's options (--help) and download it; leave the box's devices as they are. "
                   "Press BOOT0 once (system LED on) when ETS asks.",
                   CONFIGURED)
     if ok:
@@ -292,7 +292,7 @@ async def t3_17(ctx):
     if not check(await b.expect(rxp, TEMP_S), "board printed a temperature"):
         return False
     on_board = float(re.findall(rxp, b.buf)[-1])
-    # No read request: the sensor writes on its own (KEX-11).
+    # No read request: the box's sensor writes the room temperature on its own.
     t = await bus.wait(m, a.temp, lambda p: True, SENSOR_S)
     if not check(t, "sensor wrote %s" % a.temp):
         return False
@@ -306,7 +306,7 @@ async def t3_18(ctx):
     a, b, bus = ctx.args, ctx.board, ctx.bus
     if not await run_sketch(ctx, "KNX_Temperature") or not await configured(ctx):
         return None
-    # The room temperature the sensor writes is the input; nothing is written on the bus (KEX-11).
+    # The room temperature the sensor writes is the input; nothing is written on the bus (the sensor's value would overwrite it).
     rxp = r"KNX RX temperature = (-?[\d.]+)"
     b.clear()
     if not check(await b.expect(rxp, TEMP_S), "board printed a temperature"):

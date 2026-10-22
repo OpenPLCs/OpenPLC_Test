@@ -10,7 +10,7 @@ over SWD to Output/calibration-on-board/ (named by the chip UID), then:
                                                    the library's log line exactly once
 
 Each write replaces only the first 8 KiB of the backed-up sector and writes the
-whole sector back (decision 97, CAL-04), so the root area, the M records and
+whole sector back (decision 97), so the root area, the M records and
 the layout marker are the ones read. The backup is ALWAYS written back at the
 end and read back to check it.
 

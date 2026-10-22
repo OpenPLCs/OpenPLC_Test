@@ -14,7 +14,7 @@ the app, lays out flash as T3-05 does, and boots it four times:
   eth-request  the same with an ethernet record -> lwIP initialised (control)
 
 Renode reports power-on in RCC_RSR after every reset, so the request runs turn
-it into a soft reset while the record is in SRAM4 (SIM-02 found this).
+it into a soft reset while the record is in SRAM4.
 Criteria and what this cannot see: $PROD/docs/modules/M1-firmware-upgrade.md,
 T1-27 and T1-25.
 

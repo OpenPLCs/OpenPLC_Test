@@ -20,7 +20,7 @@ is a real defect: the menu cannot reach that feature.
 Also: the package's four IAPTool binaries (win, linux, macosx/IAPTool-amd64,
 macosx/IAPTool-arm64) must carry the same vcs.revision, read with `go version -m`
 so none has to run on this host; and macosx/IAPTool must be byte-identical to
-$TOOL/tools/macos-launcher.sh, the script that picks between the two (IDE-18).
+$TOOL/tools/macos-launcher.sh, the script that picks between the two.
 
 Exit 0 = the package can do everything the repository can, 1 = it is behind,
 its platform binaries differ or the macOS launcher is wrong, 2 = one of the two
