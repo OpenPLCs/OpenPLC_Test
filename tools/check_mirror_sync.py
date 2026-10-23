@@ -932,6 +932,51 @@ else:
             Fail("        do not hand-edit the header.")
             failed += 1
 
+# --- board USB serial from the UID (mirror 22) -------------------------------
+# PortTool picks a board's own USB port by this serial (decision 163); each side
+# is reduced to "which UID words are summed, which word's top bits follow".
+Section("board USB serial from the UID (mirror 22)")
+
+
+def usb_serial_shape_c(path):
+    body = get_anchor(path, r"(?s)static void Get_SerialNum\(void\)\s*\{(.*?)\n\}")
+    if body is None:
+        return None
+    word = {m.group(1): int(m.group(2)) - 1
+            for m in re.finditer(r"deviceserial(\d)\s*=\s*\*\(uint32_t\s*\*\)\s*DEVICE_ID(\d)", body)}
+    s = re.search(r"deviceserial(\d)\s*\+=\s*deviceserial(\d)", body)
+    parts = re.findall(r"IntToUnicode\(deviceserial(\d),[^,]*,\s*(\d+)\)", body)
+    if not s or len(parts) != 2 or set(word) != {"0", "1", "2"}:
+        return None
+    (lo, n1), (hi, n2) = parts
+    if lo != s.group(1):
+        return None
+    return "sum=%d+%d hi=%d>>%d digits=%s+%s" % (
+        word[s.group(1)], word[s.group(2)], word[hi], 32 - 4 * int(n2), n1, n2)
+
+
+def usb_serial_shape_fmt(path, pattern):
+    """pattern's groups: digits, digits, summed word, summed word, high word, shift."""
+    if not Path(path).exists():
+        return None
+    m = re.search(pattern, read_text(path))
+    if not m:
+        return None
+    d1, d2, a, b, h, sh = m.groups()
+    return "sum=%s+%s hi=%s>>%s digits=%s+%s" % (a, b, h, sh, d1, d2)
+
+
+compare_anchor("UID -> USB serial", {
+    "bootloader USB_DEVICE/App/usbd_desc.c Get_SerialNum()":
+        usb_serial_shape_c(BOOT / "USB_DEVICE/App/usbd_desc.c"),
+    "test tools/common.py board_usb_serial()":
+        usb_serial_shape_fmt(Path(__file__).resolve().parent / "common.py",
+                             r'"%0(\d)X%0(\d)X" % \(\(w(\d) \+ w(\d)\) & 0xFFFFFFFF, w(\d) >> (\d+)\)'),
+    "porttool src/ptpanel/usbserial.go boardUSBSerial()":
+        usb_serial_shape_fmt(PORTTOOL / "src/ptpanel/usbserial.go",
+                             r'Sprintf\("%0(\d)X%0(\d)X", uint32\(w\[(\d)\]\s*\+\s*w\[(\d)\]\), w\[(\d)\]\s*>>\s*(\d+)\)'),
+})
+
 # --- what this script does not check ----------------------------------------
 Section("not covered by this script -- still manual")
 print("  - $CORE_LIVE vs $CORE_REPO: use tools/check_core_sync.py")
