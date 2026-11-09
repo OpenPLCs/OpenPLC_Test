@@ -407,9 +407,6 @@ def decode_serial(data):
 # SRAM4 buffer. Which test reads it where: $PROD/docs/engineering/HOW-TO-RUN-TESTS.md
 # 「测试从哪读板子的输出」; line prefixes and buffer layout: $PROD/docs/modules/M1/BOOT-LOG.md.
 BOARD_USB_VID, BOARD_USB_PID = 0x0483, 0x5740   # bootloader and core usbd_desc.c
-# CDC communication interface of USB port 1. With two CDC ports, port 2
-# is the next one; a single-CDC board reports no interface number on Windows.
-BOARD_LOG_INTERFACE = 0
 SYS = "[sys]"
 # The app's first line. When it arrives, this boot's bootloader lines are out too:
 # the app sends the buffer in order.
@@ -436,16 +433,9 @@ def board_usb_serial(uid):
     return "%08X%04X" % ((w0 + w2) & 0xFFFFFFFF, w1 >> 16)
 
 
-def _usb_interface(info):
-    """bInterfaceNumber from a pyserial location ('1-2:1.0', '1-2:x.0'), or None."""
-    m = re.search(r":(?:x|\d+)\.(\d+)$", info.location or "")
-    return int(m.group(1)) if m else None
-
-
-def find_board_log_ports(uid=None, interface=BOARD_LOG_INTERFACE):
-    """Device names of the board's USB port 1 right now, by VID/PID, the USB
-    serial number derived from uid (any board when uid is empty) and, where the
-    platform reports it, the interface number."""
+def find_board_log_ports(uid=None):
+    """Device names of the board's USB port right now, by VID/PID and the USB
+    serial number derived from uid (any board when uid is empty)."""
     try:
         from serial.tools import list_ports
     except ImportError:
@@ -456,9 +446,6 @@ def find_board_log_ports(uid=None, interface=BOARD_LOG_INTERFACE):
         if p.vid != BOARD_USB_VID or p.pid != BOARD_USB_PID:
             continue
         if want and (p.serial_number or "").upper() != want:
-            continue
-        iface = _usb_interface(p)
-        if iface is not None and iface != interface:
             continue
         hits.append(p.device)
     return sorted(hits)
@@ -477,9 +464,8 @@ class BoardLog(object):
 
     REFIND_S = 0.3
 
-    def __init__(self, uid=None, interface=BOARD_LOG_INTERFACE, sys_only=False):
+    def __init__(self, uid=None, sys_only=False):
         self.uid = getattr(cfg, "BOARD_UID", "") if uid is None else uid
-        self.interface = interface
         self.sys_only = sys_only
         self.port = None
         self._serial = _import_serial()
@@ -494,7 +480,7 @@ class BoardLog(object):
         if now < self._next_try:
             return
         self._next_try = now + self.REFIND_S
-        hits = find_board_log_ports(self.uid, self.interface)
+        hits = find_board_log_ports(self.uid)
         if not hits:
             return
         h = self._serial.Serial()

@@ -241,19 +241,15 @@ def main():
         # Separately: did IAPTool pass that verdict on to the operator? A
         # refusal the tool reports as success is its own defect, and one a
         # customer would read as "the bootloader was replaced".
-        tool_noticed = ("unexpected ack" in during.lower()
-                        or "file send failed" in during.lower()
+        tool_noticed = ("refused the image" in during.lower()
                         or "has no root" in during.lower())
         if tool_noticed:
             Ok("  IAPTool reported the refusal")
         else:
             Fail("  IAPTool did NOT report the refusal -- it printed "
                  "'File transfer complete.' and exited 0")
-            Warn("     the board was right; the TOOL is wrong. IAP_Ether.go's")
-            Warn("     sendFile() returns as soon as the last chunk is acked and")
-            Warn("     never reads the verdict the board sends after verifying.")
-            Warn("     Post-transfer refusals are therefore silent on both the")
-            Warn("     `ether` and `flashboot` paths.")
+            Warn("     the board was right; the TOOL is wrong: see readVerdict in")
+            Warn("     IAPTool's upload.go.")
             fails += 1
     else:
         if not new:

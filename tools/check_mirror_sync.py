@@ -823,8 +823,10 @@ compare_anchor("IAP_QUERY_REPLY_MAX", {
     "core OpenPLC_IAP/src/udp_server.c":
         get_anchor(core_udp, r'#define\s+IAP_QUERY_REPLY_MAX\s+(\d+U?)'),
 })
-_QUERY_REQ = (r'(\}\s*else if \(iap_query_reply\(recv_buf, query_msg, sizeof\(query_msg\)\)\)\s*\{'
-              r'.*?openplc_udp_reply\([^;]*;\s*\}\s*\})')
+# Only the gate is mirrored: each side names its command buffer and reply call
+# its own way (the core shares one dispatcher with USB IAP mode, decision 176).
+_QUERY_REQ = (r'\}\s*else if \(iap_query_reply\(\w+, (query_msg, sizeof\(query_msg\)\)\)\s*\{'
+              r'\s*if \(query_reply_allowed\(\)\)\s*\{)')
 _sides = {}
 for _label, _path in (("bootloader IAPServer/udp_server.c", boot_udp),
                       ("core OpenPLC_IAP/src/udp_server.c", core_udp)):
