@@ -27,8 +27,7 @@ from common import cfg, Section, Ok, Fail, get_iap_tool, get_scratch_dir, run_ca
 
 import serial  # noqa: E402
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 SKETCH = Path(__file__).resolve().parent.parent / "onboard" / "usb" / "CDC_Stall"
 STAT = re.compile(r"stat seq=(\d+) dtr=(\d) conn=(\d) dropped=(\d+)")
 SEQ = re.compile(rb"seq (\d+)")

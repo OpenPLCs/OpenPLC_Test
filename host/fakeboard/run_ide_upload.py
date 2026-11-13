@@ -1,9 +1,9 @@
 """Case T1-34: the Arduino IDE's upload command, run against the bootloader
 stand-in ($TEST/host/bootstand: the real bootloader and app-side IAP code).
 
-What the IDE runs is `arduino-cli upload -l network -p <ip>` with
-upload_method=ethMethod, which calls the IAPTool inside the board package with
-no options. Three cases:
+What the IDE runs is `arduino-cli upload -l network -p <ip>`: a network port
+selects ethtransfer (decision 180), which calls the IAPTool inside the board
+package with no options. Three cases:
 
   unclaimed  a factory board (no root, in its bootloader), no user key
              -> a key is generated in the user config dir, the board is
@@ -50,8 +50,7 @@ from _common import (DISCOVERY_PORT, Fail, Ok, Section, build_stand_in,  # noqa:
                      start_stand_in, stop_stand_in, user_key_path, wait_for_serving)
 from common import EXE, get_iap_tool  # noqa: E402
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=ethMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 EXAMPLE = "DO_Outputs"
 # Not a real STM32 UID: IAPTool matches boards by UID, so a real board on the
 # LAN can never be mistaken for this one.

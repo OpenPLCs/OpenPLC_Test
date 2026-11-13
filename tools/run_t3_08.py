@@ -21,8 +21,7 @@ from common import (cfg, Section, Ok, Fail, get_iap_tool,  # noqa: E402
                     get_scratch_dir, open_rs232_ports, read_log_ports,
                     run_capture)
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 NAME = "T3_08_Watchdog"
 
 

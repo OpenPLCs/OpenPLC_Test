@@ -21,8 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (cfg, Section, Ok, Fail, BoardLog, find_board_log_ports,  # noqa: E402
                     get_iap_tool, get_scratch_dir, run_capture)
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 NAME = "FaultRecord"
 
 

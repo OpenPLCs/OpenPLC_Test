@@ -38,8 +38,7 @@ from common import (cfg, Section, Ok, Warn, Fail,  # noqa: E402
                     open_board_log, open_rs232_ports, read_log_ports, run_capture)
 from reset_board_to_factory_state import read_bytes, read_words  # noqa: E402
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 NAME = "T3_21_Calibration"
 
 # Sector 15 and the calibration format: $PROD/docs/modules/M1/SECTOR-15.md,

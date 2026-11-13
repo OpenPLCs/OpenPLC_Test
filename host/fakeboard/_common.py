@@ -54,7 +54,8 @@ def isolated_env(scratch):
     home.mkdir(exist_ok=True)
     tmp = scratch / "tmp"
     tmp.mkdir(exist_ok=True)
-    return dict(os.environ, APPDATA=str(home), HOME=str(home), TEMP=str(tmp), TMP=str(tmp))
+    return dict(os.environ, APPDATA=str(home), HOME=str(home), TEMP=str(tmp), TMP=str(tmp),
+                TMPDIR=str(tmp))
 
 
 def user_key_path(env):

@@ -34,8 +34,7 @@ from common import (board_ip, cfg, Section, Ok, Fail, banner, decode_serial,  # 
                     get_iap_tool, get_scratch_dir, run_capture, wait_for_board)
 import ymodem  # noqa: E402
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 
 def di_bits(n):
     """The DI_Inputs line with only DI n at 1 (n = 0 for all off)."""
@@ -278,8 +277,7 @@ def check_args(upload, ip, cdc, chosen, skip_upload=False):
 
 def build_and_upload(ex, target, key, fqbn=FQBN, upload="cdc"):
     """target: the CDC port, or the board's IP for upload="ether".
-    The image does not depend on the upload_method menu, so one FQBN serves
-    both. Returns 0 to carry on, or the exit code to stop with."""
+    The port picks the upload tool, so one FQBN serves both. Returns 0 to carry on, or the exit code to stop with."""
     cli = getattr(cfg, "ARDUINO_CLI", "")
     if not cli or not Path(cli).exists():
         Fail("arduino-cli not found. Set ARDUINO_CLI in config/machine.py")

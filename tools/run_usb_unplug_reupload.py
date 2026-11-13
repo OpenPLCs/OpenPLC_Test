@@ -24,8 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (cfg, PLATFORM, Section, Ok, Fail, find_board_log_ports,  # noqa: E402
                     get_iap_tool, get_scratch_dir, run_capture)
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 NAME = "BigImage"
 BLOCK = 8192
 WHERE = b"openplc_server_where_r_y\n"

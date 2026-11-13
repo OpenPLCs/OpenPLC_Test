@@ -26,8 +26,7 @@ from common import (board_ip, cfg, Section, Ok, Warn, Fail, get_go_bin,  # noqa:
                     get_scratch_file, open_board_log, open_rs232_ports,
                     read_log_ports, decode_serial, run_capture)
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 
 # The bootloader's line, on USB port 1 once the new app runs; the sketch prints on RS232.
 ACCEPTED = "[sys][BL] Checksum and signature OK"

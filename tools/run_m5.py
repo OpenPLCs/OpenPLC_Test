@@ -30,8 +30,7 @@ from common import (board_ip, cfg, Section, Ok, Warn, Fail,  # noqa: E402
                     open_board_log, read_log_ports, run_capture,
                     run_while_draining)
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=cdcMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 LETTERS = ["A", "B", "C", "D", "E"]
 # The bootloader's line; it reaches USB port 1 once the new app runs.
 ACCEPTED = "[sys][BL] Checksum and signature OK"

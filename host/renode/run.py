@@ -33,8 +33,7 @@ from build_image import build_copy  # noqa: E402
 from common import (BOOT_LOG_ADDR, BOOT_LOG_SIZE, EXE, Fail, Ok, Section, cfg,  # noqa: E402
                     get_iap_tool, get_scratch_dir, parse_boot_log, run_capture)
 
-FQBN = ("OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen,"
-        "upload_method=ethMethod")
+FQBN = "OpenPLC_Alpha:stm32:OPEN-PLC:pnum=PLC_H743,usb=CDCgen"
 
 FLASH, FLASH_SIZE = 0x08000000, 2 << 20
 APP = 0x08020000
