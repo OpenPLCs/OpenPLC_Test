@@ -118,6 +118,17 @@ EXAMPLES = [
         ],
     },
     {
+        "name": "AI_Inputs",
+        "lib": "OpenPLC_Ports",
+        "ready": ("cdc", r"AI_Inputs: AI1 in mV, AI2 in mA, once a second\."),
+        "setup": "a 0..10 V source on AI1 and a 0..20 mA source on AI2, solder jumpers closed",
+        "steps": [
+            ("expect", [("cdc", r"AI1 = -?\d+ mV   AI2 = -?\d+\.\d{3} mA")], 3.0),
+            ("ask", "Do AI1 and AI2 read what the sources are set to, within 1 % of "
+                    "full scale (100 mV, 0.2 mA)?"),
+        ],
+    },
+    {
         "name": "DO_PWM",
         "lib": "OpenPLC_Ports",
         "ready": ("cdc", r"DO_PWM: type <output 1-8> <duty 0-100>"),
