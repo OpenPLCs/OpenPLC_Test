@@ -40,7 +40,7 @@ import ymodem  # noqa: E402
 
 # Serial on UART4 instead of USB CDC: Renode does not model USB
 # ($PROD/docs/build/BUILD-AND-TEST.md, "USB support").
-FQBN_SIM = FQBN.replace("usb=CDCgen", "usb=CDC")
+SIM_USB = "build.enable_usb={build.usb_flags} -DUSBD_USE_CDC -DDISABLE_GENERIC_SERIALUSB"
 
 GPIO_BASE = {"A": 0x58020000, "B": 0x58020400, "C": 0x58020800, "D": 0x58020C00, "E": 0x58021000,
              "F": 0x58021400, "G": 0x58021800, "H": 0x58021C00, "I": 0x58022000}
@@ -643,10 +643,10 @@ def main():
         w = Work(root / ex.name)
         build = w.path / "build"
         sketch = Path(cfg.CORE_LIVE) / "libraries" / ex.lib / "examples" / ex.name
-        out, rc = run_capture([arduino_cli, "compile", "--config-file", cli_config, "--fqbn", FQBN_SIM,
+        out, rc = run_capture([arduino_cli, "compile", "--config-file", cli_config, "--fqbn", FQBN, "--build-property", SIM_USB,
                                "--build-path", build, sketch])
         if rc != 0:
-            Fail("FAIL - does not compile with usb=CDC:\n%s" % out[-1500:])
+            Fail("FAIL - does not compile with Serial on UART4:\n%s" % out[-1500:])
             failed.append(ex.name)
             continue
         flash_banks(boot_bin, build / (ex.name + ".ino.bin"), get_iap_tool(), w.path)

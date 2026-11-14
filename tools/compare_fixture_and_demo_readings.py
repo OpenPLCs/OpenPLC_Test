@@ -1,7 +1,7 @@
 """T3-27: does the board package read the hardware the way the fixture firmware does?
 
 Compares, in PortTool full-test records, step 2 (functional test, fixture
-firmware) with step 6 (user-level test, the board-package sketch FixtureDemo)
+firmware) with step 6 (user-level test, FixtureDemo built with the board package)
 item by item. Criteria, default tolerances and their sources:
 $PROD/docs/engineering/HOW-TO-RUN-TESTS.md "T3-27".
 
